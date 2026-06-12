@@ -195,7 +195,7 @@ router.patch(
  *           type: integer
  *         description: Announcement ID
  *     responses:
- *       204:
+ *       200:
  *         description: Announcement deleted
  *       404:
  *         description: Announcement not found

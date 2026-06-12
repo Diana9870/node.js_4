@@ -1,10 +1,11 @@
 import express from 'express'
 import swaggerUi from 'swagger-ui-express'
 import swaggerJsdoc from 'swagger-jsdoc'
-import announcementsRouter from './src/routes/announcements.routes.js'
-import authRouter from './src/routes/auth.routes.js'
 import { errors as celebrateErrors } from 'celebrate'
 import cookieParser from 'cookie-parser'
+
+import announcementsRouter from './src/routes/announcements.routes.js'
+import authRouter from './src/routes/auth.routes.js'
 
 const app = express()
 
@@ -22,70 +23,99 @@ const swaggerOptions = {
         url: 'http://localhost:3000',
       },
     ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+      },
+    },
   },
   apis: ['./src/routes/*.js'],
 }
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions)
 
+// Middlewares
 app.use(express.json())
-
 app.use(cookieParser())
 
+// Routes
 app.use('/announcements', announcementsRouter)
-
 app.use('/auth', authRouter)
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
+// Swagger
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec)
+)
 
+// Celebrate validation errors
 app.use(celebrateErrors())
 
-// Our routes would go here, for example:
-// app.use('/api/announcements', announcementsRouter)
-
-// 404 Not Found handler - must be after all routes
+// 404 handler
 app.use((req, res) => {
-  res.status(404).json({ error: 'Not found' })
+  res.status(404).json({
+    error: 'Not found',
+  })
 })
 
-// Error handling middleware
+// Global error handler
 app.use((err, req, res, next) => {
   console.error(err)
 
-  // JSON parsing errors (invalid JSON format)
-  if (err.type === 'entity.parse.failed' && err.status === 400) {
+  // Invalid JSON
+  if (
+    err.type === 'entity.parse.failed' &&
+    err.status === 400
+  ) {
     return res.status(400).json({
-      statusCode: 400,
-      error: 'Bad Request',
-      message: 'Invalid JSON',
-      validation: {
-        body: {
-          source: 'body',
-          keys: [],
-          message: 'Invalid JSON format in request body',
-        },
-      },
+      error: 'Invalid JSON',
     })
   }
 
+  // http-errors
+  if (err.status) {
+    return res.status(err.status).json({
+      error: err.message,
+    })
+  }
+
+  // Prisma: Record not found
   if (err.code === 'P2025') {
-    return res.status(404).json({ error: 'Resource not found' })
+    return res.status(404).json({
+      error: 'Resource not found',
+    })
   }
 
+  // Prisma: Unique constraint
   if (err.code === 'P2002') {
-    return res.status(409).json({ error: 'Unique constraint violation' })
+    return res.status(409).json({
+      error: 'Unique constraint violation',
+    })
   }
 
+  // Prisma: Foreign key constraint
   if (err.code === 'P2003') {
-    return res.status(400).json({ error: 'Foreign key constraint failed' })
+    return res.status(400).json({
+      error: 'Foreign key constraint failed',
+    })
   }
 
-  res.status(500).json({ error: 'Internal server error' })
+  return res.status(500).json({
+    error: 'Internal server error',
+  })
 })
 
 const PORT = process.env.PORT || 3000
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`)
-  console.log(`API docs: http://localhost:${PORT}/api-docs`)
-})
+  console.log(
+    `Swagger docs available at: http://localhost:${PORT}/api-docs`
+  )
+}
+)
