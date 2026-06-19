@@ -1,33 +1,50 @@
 {
-  "name": "topic_9",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "start": "node app.js",
-    "dev": "node --watch app.js",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:generate": "prisma generate"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "module",
-  "dependencies": {
-    "@prisma/adapter-better-sqlite3": "^7.2.0",
-    "@prisma/client": "^6.19.3",
-    "bcrypt": "^6.0.0",
-    "celebrate": "^15.0.3",
-    "cookie-parser": "^1.4.7",
-    "dotenv": "^17.2.3",
-    "express": "^5.2.1",
-    "http-errors": "^2.0.1",
-    "jsonwebtoken": "^9.0.3",
-    "prisma": "^6.19.3",
-    "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1"
-  },
-  "devDependencies": {
-    "@types/node": "^25.0.9"
-  }
+"name": "nodejs_5",
+"version": "1.0.0",
+"description": "REST API with JWT authentication, security middleware, logging and Cloudinary uploads",
+"type": "module",
+"main": "app.js",
+"scripts": {
+"start": "node app.js",
+"dev": "node --watch app.js",
+"prisma:migrate": "prisma migrate dev",
+"prisma:generate": "prisma generate",
+"prisma:studio": "prisma studio",
+"prisma:reset": "prisma migrate reset"
+},
+"keywords": [
+"express",
+"prisma",
+"jwt",
+"cloudinary",
+"swagger",
+"pino"
+],
+"author": "",
+"license": "ISC",
+"dependencies": {
+"@prisma/adapter-better-sqlite3": "^7.2.0",
+"@prisma/client": "^6.19.3",
+"bcrypt": "^6.0.0",
+"celebrate": "^15.0.3",
+"cloudinary": "^2.8.0",
+"cookie-parser": "^1.4.7",
+"cors": "^2.8.5",
+"dotenv": "^17.2.3",
+"express": "^5.2.1",
+"express-rate-limit": "^8.1.0",
+"helmet": "^8.1.0",
+"http-errors": "^2.0.1",
+"jsonwebtoken": "^9.0.3",
+"multer": "^2.0.2",
+"pino": "^10.1.0",
+"pino-http": "^11.0.0",
+"pino-pretty": "^13.1.2",
+"prisma": "^6.19.3",
+"swagger-jsdoc": "^6.2.8",
+"swagger-ui-express": "^5.0.1"
+},
+"devDependencies": {
+"@types/node": "^25.0.9"
+}
 }
