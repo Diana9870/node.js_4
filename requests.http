@@ -1,4 +1,6 @@
+### ==========================================
 ### AUTH
+### ==========================================
 
 ### Register User 1
 
@@ -6,9 +8,9 @@ POST http://localhost:3000/auth/register
 Content-Type: application/json
 
 {
-"username": "ivan",
-"password": "123456",
-"name": "Іван"
+  "username": "ivan",
+  "password": "123456",
+  "name": "Іван"
 }
 
 ###
@@ -19,36 +21,29 @@ POST http://localhost:3000/auth/register
 Content-Type: application/json
 
 {
-"username": "petro",
-"password": "123456",
-"name": "Петро"
+  "username": "petro",
+  "password": "123456",
+  "name": "Петро"
 }
 
 ###
 
 ### Login User 1
 
-POST http://localhost:3000/auth/login
-Content-Type: application/json
-
-{
-"username": "ivan",
-"password": "123456"
-}
-
-###
-
-### Login User 2
+# @name loginUser1
 
 POST http://localhost:3000/auth/login
 Content-Type: application/json
 
 {
-"username": "petro",
-"password": "123456"
+  "username": "ivan",
+  "password": "123456"
 }
 
 ###
+
+@accessToken = {{loginUser1.response.body.accessToken}}
+@refreshToken = {{loginUser1.response.body.refreshToken}}
 
 ### Current User
 
@@ -63,7 +58,7 @@ POST http://localhost:3000/auth/refresh
 Content-Type: application/json
 
 {
-"refreshToken": "{{refreshToken}}"
+  "refreshToken": "{{refreshToken}}"
 }
 
 ###
@@ -71,7 +66,6 @@ Content-Type: application/json
 ### Logout
 
 POST http://localhost:3000/auth/logout
-Authorization: Bearer {{accessToken}}
 
 ###
 
@@ -81,51 +75,221 @@ POST http://localhost:3000/auth/login
 Content-Type: application/json
 
 {
-"username": "ivan",
-"password": "wrong_password"
+  "username": "ivan",
+  "password": "wrong_password"
+}
+
+### ==========================================
+### RATE LIMIT TEST
+### Execute all requests below several times
+### After 10 requests expect 429
+### ==========================================
+
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "username": "ivan",
+  "password": "123456"
 }
 
 ###
 
-### ANNOUNCEMENTS
+POST http://localhost:3000/auth/login
+Content-Type: application/json
 
-### Get All Announcements
+{
+  "username": "ivan",
+  "password": "123456"
+}
+
+###
+
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "username": "ivan",
+  "password": "123456"
+}
+
+###
+
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "username": "ivan",
+  "password": "123456"
+}
+
+###
+
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "username": "ivan",
+  "password": "123456"
+}
+
+###
+
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "username": "ivan",
+  "password": "123456"
+}
+
+###
+
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "username": "ivan",
+  "password": "123456"
+}
+
+###
+
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "username": "ivan",
+  "password": "123456"
+}
+
+###
+
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "username": "ivan",
+  "password": "123456"
+}
+
+###
+
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "username": "ivan",
+  "password": "123456"
+}
+
+###
+
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "username": "ivan",
+  "password": "123456"
+}
+
+### ==========================================
+### ANNOUNCEMENTS
+### ==========================================
+
+### Get All
 
 GET http://localhost:3000/announcements
 
 ###
 
-### Get Announcement By Id
+### Get By Id
 
 GET http://localhost:3000/announcements/1
 
 ###
 
-### Create Announcement
+### Create Announcement WITHOUT PHOTO
 
 POST http://localhost:3000/announcements
 Authorization: Bearer {{accessToken}}
-Content-Type: application/json
+Content-Type: multipart/form-data; boundary=boundary
 
-{
-"title": "iPhone 14",
-"description": "Новий смартфон",
-"price": 25000,
-"category": "electronics",
-"contactInfo": "+380991112233"
-}
+--boundary
+Content-Disposition: form-data; name="title"
+
+iPhone 14
+--boundary
+Content-Disposition: form-data; name="description"
+
+Новий смартфон
+--boundary
+Content-Disposition: form-data; name="price"
+
+25000
+--boundary
+Content-Disposition: form-data; name="category"
+
+sale
+--boundary
+Content-Disposition: form-data; name="contactInfo"
+
++380991112233
+--boundary--
 
 ###
 
-### Update Own Announcement
+### Create Announcement WITH PHOTO
+
+POST http://localhost:3000/announcements
+Authorization: Bearer {{accessToken}}
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="title"
+
+MacBook Air
+--boundary
+Content-Disposition: form-data; name="description"
+
+Новий ноутбук
+--boundary
+Content-Disposition: form-data; name="price"
+
+45000
+--boundary
+Content-Disposition: form-data; name="category"
+
+sale
+--boundary
+Content-Disposition: form-data; name="contactInfo"
+
++380991112233
+--boundary
+Content-Disposition: form-data; name="image"; filename="photo.jpg"
+Content-Type: image/jpeg
+
+< ./photo.jpg
+--boundary--
+
+###
+
+### Update Announcement WITH PHOTO
 
 PATCH http://localhost:3000/announcements/1
 Authorization: Bearer {{accessToken}}
-Content-Type: application/json
+Content-Type: multipart/form-data; boundary=boundary
 
-{
-"price": 23000
-}
+--boundary
+Content-Disposition: form-data; name="price"
+
+23000
+--boundary
+Content-Disposition: form-data; name="image"; filename="photo.jpg"
+Content-Type: image/jpeg
+
+< ./photo.jpg
+--boundary--
 
 ###
 
@@ -134,53 +298,67 @@ Content-Type: application/json
 DELETE http://localhost:3000/announcements/1
 Authorization: Bearer {{accessToken}}
 
-###
-
-### Create Without Token (Expected 401)
+### ==========================================
+### 401 TESTS
+### ==========================================
 
 POST http://localhost:3000/announcements
 Content-Type: application/json
 
 {
-"title": "Unauthorized",
-"description": "Should fail",
-"price": 100,
-"category": "test",
-"contactInfo": "000000000"
+  "title": "Unauthorized",
+  "description": "Should fail",
+  "price": 100,
+  "category": "sale",
+  "contactInfo": "000000000"
 }
 
 ###
-
-### Update Without Token (Expected 401)
 
 PATCH http://localhost:3000/announcements/1
 Content-Type: application/json
 
 {
-"price": 1
+  "price": 1
 }
 
 ###
 
-### Delete Without Token (Expected 401)
-
 DELETE http://localhost:3000/announcements/1
+
+### ==========================================
+### 403 TESTS
+### ==========================================
+
+### Login User 2
+
+# @name loginUser2
+
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "username": "petro",
+  "password": "123456"
+}
 
 ###
 
-### Ownership Test (Login as User 2 first)
+@user2AccessToken = {{loginUser2.response.body.accessToken}}
+
+### Update чужого оголошення
 
 PATCH http://localhost:3000/announcements/1
 Authorization: Bearer {{user2AccessToken}}
 Content-Type: application/json
 
 {
-"price": 999
+  "price": 999
 }
 
 ###
 
-### Ownership Delete Test (Expected 403)
+### Delete чужого оголошення
 
 DELETE http://localhost:3000/announcements/1
 Authorization: Bearer {{user2AccessToken}}
