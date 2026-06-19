@@ -3,18 +3,23 @@ import jwt from 'jsonwebtoken'
 import createHttpError from 'http-errors'
 
 import prisma from '../../prisma/client.js'
+import logger from '../logger.js'
 
 const generateTokens = (userId) => {
   const accessToken = jwt.sign(
     { id: userId },
     process.env.JWT_SECRET,
-    { expiresIn: '15m' }
+    {
+      expiresIn: '15m',
+    },
   )
 
   const refreshToken = jwt.sign(
     { id: userId },
     process.env.JWT_REFRESH_SECRET,
-    { expiresIn: '7d' }
+    {
+      expiresIn: '7d',
+    },
   )
 
   return {
@@ -23,18 +28,26 @@ const generateTokens = (userId) => {
   }
 }
 
+const cookieOptions = {
+  httpOnly: true,
+  sameSite: 'strict',
+  secure: process.env.NODE_ENV === 'production',
+}
+
 export async function register(req, res) {
   const { username, password, name } = req.body
 
   const existingUser =
     await prisma.user.findUnique({
-      where: { username },
+      where: {
+        username,
+      },
     })
 
   if (existingUser) {
     throw createHttpError(
       409,
-      'User with this username already exists'
+      'User with this username already exists',
     )
   }
 
@@ -61,9 +74,11 @@ export async function register(req, res) {
   res.cookie(
     'refreshToken',
     tokens.refreshToken,
-    {
-      httpOnly: true,
-    }
+    cookieOptions,
+  )
+
+  logger.info(
+    `User registered: ${user.username}`,
   )
 
   res.status(201).json({
@@ -72,7 +87,8 @@ export async function register(req, res) {
       username: user.username,
       name: user.name,
     },
-    ...tokens,
+    accessToken: tokens.accessToken,
+    refreshToken: tokens.refreshToken,
   })
 }
 
@@ -81,26 +97,27 @@ export async function login(req, res) {
 
   const user =
     await prisma.user.findUnique({
-      where: { username },
+      where: {
+        username,
+      },
     })
 
   if (!user) {
     throw createHttpError(
       401,
-      'Invalid credentials'
+      'Invalid credentials',
     )
   }
 
-  const isValid =
-    await bcrypt.compare(
-      password,
-      user.password
-    )
+  const isValid = await bcrypt.compare(
+    password,
+    user.password,
+  )
 
   if (!isValid) {
     throw createHttpError(
       401,
-      'Invalid credentials'
+      'Invalid credentials',
     )
   }
 
@@ -122,9 +139,11 @@ export async function login(req, res) {
   res.cookie(
     'refreshToken',
     tokens.refreshToken,
-    {
-      httpOnly: true,
-    }
+    cookieOptions,
+  )
+
+  logger.info(
+    `User logged in: ${user.username}`,
   )
 
   res.json({
@@ -133,7 +152,8 @@ export async function login(req, res) {
       username: user.username,
       name: user.name,
     },
-    ...tokens,
+    accessToken: tokens.accessToken,
+    refreshToken: tokens.refreshToken,
   })
 }
 
@@ -159,7 +179,10 @@ export async function refresh(req, res) {
     req.body.refreshToken
 
   if (!refreshToken) {
-    throw createHttpError(401, 'Invalid refresh token')
+    throw createHttpError(
+      401,
+      'Invalid refresh token',
+    )
   }
 
   let payload
@@ -167,10 +190,13 @@ export async function refresh(req, res) {
   try {
     payload = jwt.verify(
       refreshToken,
-      process.env.JWT_REFRESH_SECRET
+      process.env.JWT_REFRESH_SECRET,
     )
   } catch {
-    throw createHttpError(401, 'Invalid refresh token')
+    throw createHttpError(
+      401,
+      'Invalid refresh token',
+    )
   }
 
   const storedToken =
@@ -181,7 +207,10 @@ export async function refresh(req, res) {
     })
 
   if (!storedToken) {
-    throw createHttpError(401, 'Invalid refresh token')
+    throw createHttpError(
+      401,
+      'Invalid refresh token',
+    )
   }
 
   await prisma.refreshToken.delete({
@@ -190,8 +219,7 @@ export async function refresh(req, res) {
     },
   })
 
-  const tokens =
-    generateTokens(payload.id)
+  const tokens = generateTokens(payload.id)
 
   await prisma.refreshToken.create({
     data: {
@@ -203,9 +231,11 @@ export async function refresh(req, res) {
   res.cookie(
     'refreshToken',
     tokens.refreshToken,
-    {
-      httpOnly: true,
-    }
+    cookieOptions,
+  )
+
+  logger.info(
+    `Token refreshed for user ${payload.id}`,
   )
 
   res.json(tokens)
@@ -224,6 +254,8 @@ export async function logout(req, res) {
   }
 
   res.clearCookie('refreshToken')
+
+  logger.info('User logged out')
 
   res.json({
     message: 'Logged out successfully',

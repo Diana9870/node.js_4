@@ -16,6 +16,7 @@ import {
 } from '../validators/announcements.validator.js'
 
 import { authenticate } from '../middleware/auth.middleware.js'
+import upload from '../middleware/upload.middleware.js'
 
 const router = Router()
 
@@ -35,7 +36,9 @@ const router = Router()
  *         name: sort
  *         schema:
  *           type: string
- *           enum: [newest, oldest]
+ *           enum:
+ *             - newest
+ *             - oldest
  *         description: Sort announcements
  *       - in: query
  *         name: page
@@ -47,17 +50,13 @@ const router = Router()
  *       200:
  *         description: List of announcements
  */
-router.get(
-  '/',
-  getAnnouncementsValidator,
-  getAnnouncements,
-)
+router.get('/', getAnnouncementsValidator, getAnnouncements)
 
 /**
  * @swagger
  * /announcements/{id}:
  *   get:
- *     summary: Get announcement by id
+ *     summary: Get announcement by ID
  *     tags: [Announcements]
  *     parameters:
  *       - in: path
@@ -72,11 +71,7 @@ router.get(
  *       404:
  *         description: Announcement not found
  */
-router.get(
-  '/:id',
-  idValidator,
-  getAnnouncementById,
-)
+router.get('/:id', idValidator, getAnnouncementById)
 
 /**
  * @swagger
@@ -89,7 +84,7 @@ router.get(
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
@@ -101,16 +96,12 @@ router.get(
  *             properties:
  *               title:
  *                 type: string
- *                 minLength: 5
- *                 maxLength: 100
  *                 example: iPhone 15 Pro
  *               description:
  *                 type: string
- *                 minLength: 10
  *                 example: New phone in perfect condition
  *               price:
  *                 type: number
- *                 minimum: 0.01
  *                 example: 35000
  *               category:
  *                 type: string
@@ -121,8 +112,10 @@ router.get(
  *                   - other
  *               contactInfo:
  *                 type: string
- *                 minLength: 5
  *                 example: +380991112233
+ *               image:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       201:
  *         description: Announcement created successfully
@@ -134,6 +127,7 @@ router.get(
 router.post(
   '/',
   authenticate,
+  upload.single('image'),
   createAnnouncementValidator,
   createAnnouncement,
 )
@@ -154,21 +148,18 @@ router.post(
  *           type: integer
  *         description: Announcement ID
  *     requestBody:
- *       required: true
+ *       required: false
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
  *               title:
  *                 type: string
- *                 example: Updated title
  *               description:
  *                 type: string
- *                 example: Updated description
  *               price:
  *                 type: number
- *                 example: 5000
  *               category:
  *                 type: string
  *                 enum:
@@ -178,7 +169,9 @@ router.post(
  *                   - other
  *               contactInfo:
  *                 type: string
- *                 example: +380991112233
+ *               image:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       200:
  *         description: Announcement updated successfully
@@ -194,6 +187,7 @@ router.post(
 router.patch(
   '/:id',
   authenticate,
+  upload.single('image'),
   idValidator,
   updateAnnouncementValidator,
   updateAnnouncement,
