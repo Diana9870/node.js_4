@@ -14,17 +14,20 @@ import logger from './src/logger.js'
 
 const app = express()
 
-// Logger
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Server is running'
+  });
+});
+
 app.use(
   pinoHttp({
     logger,
   }),
 )
 
-// Security headers
 app.use(helmet())
 
-// CORS
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',')
   : []
@@ -42,11 +45,9 @@ app.use(
   }),
 )
 
-// Body parsers
 app.use(express.json())
 app.use(cookieParser())
 
-// Rate limit only auth routes
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
@@ -57,7 +58,6 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 })
 
-// Swagger
 const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
@@ -95,21 +95,17 @@ app.use(
   swaggerUi.setup(swaggerSpec),
 )
 
-// Routes
 app.use('/auth', authLimiter, authRouter)
 app.use('/announcements', announcementsRouter)
 
-// Celebrate validation errors
 app.use(celebrateErrors())
 
-// 404 handler
 app.use((req, res) => {
   res.status(404).json({
     message: 'Route not found',
   })
 })
 
-// Global error handler
 app.use((err, req, res, next) => {
   req.log.error(err)
 
@@ -117,5 +113,11 @@ app.use((err, req, res, next) => {
     message: err.message || 'Internal server error',
   })
 })
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  logger.info(`Server is running on port ${PORT}`);
+});
 
 export default app
